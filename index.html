@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bonjour">
+<meta name="theme-color" content="#1a1612">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<title>Bonjour — Français Quotidien</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Karla:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --cream: #f5f0e8;
+  --ink: #1a1612;
+  --terra: #c4622d;
+  --sage: #7a8c6e;
+  --warm-gray: #9c9088;
+  --border: #e0d8cc;
+  --card: #fffdf9;
+  --dark-bg: #1a1612;
+  --dark-card: #252018;
+  --dark-border: #3a3028;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: 'Karla', sans-serif;
+  font-weight: 300;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+/* ── VIEWS ── */
+.view { display: none; min-height: 100dvh; }
+.view.active { display: block; }
+
+/* ── NAV ── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--ink);
+  display: flex;
+  border-top: 1px solid var(--dark-border);
+  z-index: 200;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.nav-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--warm-gray);
+  font-family: 'Karla', sans-serif;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.9rem 0.5rem 0.7rem;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  transition: color 0.2s;
+}
+.nav-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+.nav-btn.active { color: var(--terra); }
+
+/* ── SHARED ── */
+.page-pad { padding: 0 1.4rem 7rem; max-width: 680px; margin: 0 auto; }
+
+h1.display {
+  font-family: 'Playfair Display', serif;
+  font-weight: 400;
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+  line-height: 1.1;
+}
+h1.display em { color: var(--terra); font-style: italic; }
+
+.label-sm {
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--warm-gray);
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 1.1rem 1.3rem;
+  margin-bottom: 0.7rem;
+}
+
+.speak-card {
+  background: var(--ink);
+  color: var(--cream);
+  padding: 1.1rem 1.3rem;
+  margin-bottom: 0.7rem;
+}
+.speak-card .tag { color: var(--terra); font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.4rem; }
+.speak-card .fr { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1rem; line-height: 1.55; }
+
+.accent-card {
+  background: var(--terra);
+  color: white;
+  padding: 1.3rem 1.4rem;
+  margin-bottom: 0.7rem;
+}
+.accent-card .big { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.3rem; margin-bottom: 0.3rem; }
+.accent-card .sm { font-size: 0.8rem; opacity: 0.88; }
+.accent-card .eg { font-style: italic; font-size: 0.82rem; opacity: 0.8; margin-top: 0.5rem; }
+
+.block-head {
+  display: flex; align-items: baseline; gap: 0.8rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.6rem; margin-bottom: 1rem;
+}
+.block-num { color: var(--terra); font-family: 'Playfair Display', serif; font-size: 0.7rem; }
+.block-title { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 400; }
+.block-time { margin-left: auto; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--warm-gray); }
+
+.block { margin-bottom: 2.2rem; opacity: 0; transform: translateY(12px); animation: up 0.45s ease forwards; }
+.block:nth-child(1) { animation-delay: 0.05s; }
+.block:nth-child(2) { animation-delay: 0.12s; }
+.block:nth-child(3) { animation-delay: 0.19s; }
+.block:nth-child(4) { animation-delay: 0.26s; }
+.block:nth-child(5) { animation-delay: 0.33s; }
+@keyframes up { to { opacity:1; transform:translateY(0); } }
+
+/* vocab */
+.vocab-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem; }
+.vocab-item {
+  background: var(--card); border: 1px solid var(--border);
+  padding: 0.75rem 0.9rem; cursor: pointer; transition: border-color 0.15s; position: relative;
+}
+.vocab-item:hover { border-color: var(--terra); }
+.vocab-item .word { font-family: 'Playfair Display', serif; font-style: italic; font-size: 0.92rem; }
+.vocab-item .trans { font-size: 0.72rem; color: var(--warm-gray); max-height: 0; overflow: hidden; transition: max-height 0.3s; margin-top: 0.15rem; }
+.vocab-item.open .trans { max-height: 2.5rem; }
+.vocab-item .hint { position: absolute; top: 0.5rem; right: 0.7rem; font-size: 0.55rem; color: var(--border); text-transform: uppercase; letter-spacing: 0.1em; }
+
+/* starters */
+.starter {
+  border-left: 3px solid var(--sage);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--sage);
+  background: var(--card);
+  padding: 0.8rem 1rem;
+  font-family: 'Playfair Display', serif; font-style: italic; font-size: 0.9rem;
+  line-height: 1.5; margin-bottom: 0.5rem;
+}
+.starter .blank { color: var(--terra); font-style: normal; }
+
+/* check btn */
+.check-btn {
+  font-family: 'Karla', sans-serif; font-size: 0.7rem;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 0.5rem 1.1rem; border: 1px solid var(--border);
+  background: none; cursor: pointer; color: var(--warm-gray);
+  transition: all 0.15s; margin-top: 0.7rem;
+}
+.check-btn:hover { border-color: var(--sage); color: var(--sage); }
+.check-btn.done { background: var(--sage); border-color: var(--sage); color: white; }
+
+/* journal */
+.journal-ta {
+  width: 100%; min-height: 90px;
+  background: var(--card); border: 1px solid var(--border);
+  padding: 0.9rem 1.1rem;
+  font-family: 'Playfair Display', serif; font-style: italic; font-size: 0.92rem;
+  color: var(--ink); resize: vertical; outline: none; line-height: 1.75;
+  transition: border-color 0.2s;
+}
+.journal-ta:focus { border-color: var(--terra); }
+.journal-ta::placeholder { color: var(--warm-gray); }
+
+/* timer */
+.timer-bar {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--card); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 1rem;
+  padding: 1rem 1.4rem;
+}
+.timer-num {
+  font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--terra); min-width: 3.8rem;
+}
+.timer-track { flex: 1; height: 2px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.timer-fill { height: 100%; background: var(--terra); width: 0%; transition: width 1s linear; }
+.timer-btn {
+  font-family: 'Karla', sans-serif; font-size: 0.7rem; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 0.4rem 0.9rem;
+  border: 1px solid var(--terra); background: none; color: var(--terra); cursor: pointer;
+  transition: all 0.15s;
+}
+.timer-btn:hover { background: var(--terra); color: white; }
+
+/* page header */
+.page-header {
+  padding: 2.5rem 1.4rem 1.8rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2rem;
+  max-width: 680px; margin-left: auto; margin-right: auto;
+}
+.page-header .date-sm { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--warm-gray); margin-bottom: 0.7rem; }
+.page-header .sub { font-size: 0.82rem; color: var(--warm-gray); margin-top: 0.4rem; }
+
+/* ── STREAK VIEW ── */
+.streak-hero {
+  background: var(--ink); color: var(--cream);
+  padding: 2.5rem 1.4rem 2rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+.streak-num { font-family: 'Playfair Display', serif; font-size: 4rem; color: var(--terra); line-height: 1; }
+.streak-label { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--warm-gray); margin-top: 0.4rem; }
+.streak-sub { font-size: 0.82rem; color: #9c9088; margin-top: 0.6rem; font-style: italic; }
+
+.cal-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px;
+  margin-bottom: 1.5rem;
+}
+.cal-day-label { font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--warm-gray); text-align: center; padding: 0.3rem 0; }
+.cal-day {
+  aspect-ratio: 1; border-radius: 2px;
+  background: var(--card); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem; color: var(--warm-gray);
+}
+.cal-day.done { background: var(--terra); border-color: var(--terra); color: white; }
+.cal-day.today { border-color: var(--ink); font-weight: 600; color: var(--ink); }
+.cal-day.today.done { border-color: var(--terra); color: white; }
+.cal-day.empty { background: none; border-color: transparent; }
+
+/* ── JOURNAL HISTORY ── */
+.journal-entry {
+  background: var(--card); border: 1px solid var(--border);
+  margin-bottom: 0.8rem;
+  overflow: hidden;
+}
+.je-head {
+  padding: 0.8rem 1.1rem; display: flex; justify-content: space-between; align-items: center;
+  cursor: pointer; transition: background 0.15s;
+}
+.je-head:hover { background: #f0ebe0; }
+.je-date { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--warm-gray); }
+.je-preview { font-family: 'Playfair Display', serif; font-style: italic; font-size: 0.88rem; color: var(--ink); max-width: 70%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.je-body { padding: 0 1.1rem; max-height: 0; overflow: hidden; transition: max-height 0.35s ease, padding 0.2s; }
+.je-body.open { max-height: 500px; padding: 0.8rem 1.1rem 1.1rem; }
+.je-body p { font-family: 'Playfair Display', serif; font-style: italic; font-size: 0.92rem; line-height: 1.7; color: var(--ink); }
+.je-body .prompt-sm { font-size: 0.72rem; color: var(--warm-gray); margin-bottom: 0.5rem; font-style: normal; font-family: 'Karla', sans-serif; }
+
+/* ── SETTINGS ── */
+.setting-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1rem 0; border-bottom: 1px solid var(--border);
+}
+.setting-label { font-size: 0.88rem; }
+.setting-sub { font-size: 0.73rem; color: var(--warm-gray); margin-top: 0.15rem; }
+
+.toggle { position: relative; display: inline-block; width: 42px; height: 24px; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute; cursor: pointer; inset: 0;
+  background: var(--border); border-radius: 24px; transition: 0.2s;
+}
+.toggle-slider::before {
+  content: ''; position: absolute; width: 18px; height: 18px;
+  left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.2s;
+}
+.toggle input:checked + .toggle-slider { background: var(--terra); }
+.toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+.time-input {
+  font-family: 'Playfair Display', serif; font-size: 1rem;
+  border: 1px solid var(--border); background: var(--card);
+  padding: 0.4rem 0.7rem; color: var(--ink); outline: none;
+}
+.time-input:focus { border-color: var(--terra); }
+
+.big-btn {
+  width: 100%; padding: 0.9rem; margin-top: 1rem;
+  background: var(--ink); color: var(--cream);
+  font-family: 'Karla', sans-serif; font-size: 0.75rem;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  border: none; cursor: pointer; transition: background 0.15s;
+}
+.big-btn:hover { background: var(--terra); }
+.big-btn.secondary { background: none; color: var(--warm-gray); border: 1px solid var(--border); margin-top: 0.5rem; }
+.big-btn.secondary:hover { border-color: var(--terra); color: var(--terra); background: none; }
+
+.badge {
+  display: inline-block; font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase;
+  background: var(--sage); color: white; padding: 0.2rem 0.5rem; margin-left: 0.5rem;
+}
+
+@media(max-width:420px) { .vocab-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════ WARMUP VIEW -->
+<div class="view active" id="view-warmup">
+
+  <div class="page-header" style="padding-bottom:1rem; margin-bottom:0;">
+    <div class="date-sm" id="dateLine">—</div>
+    <h1 class="display">Bonjour, <em>Brian.</em></h1>
+    <p class="sub">Dix minutes · <span id="streakInline">—</span></p>
+  </div>
+
+  <div class="timer-bar">
+    <div class="timer-num" id="timerNum">10:00</div>
+    <div class="timer-track"><div class="timer-fill" id="timerFill"></div></div>
+    <button class="timer-btn" id="timerBtn" onclick="toggleTimer()">Commencer</button>
+  </div>
+
+  <div class="page-pad" style="padding-top:1.8rem;">
+
+    <div class="block">
+      <div class="block-head">
+        <span class="block-num">01</span>
+        <span class="block-title">Réveil vocal</span>
+        <span class="block-time">2 min</span>
+      </div>
+      <div class="speak-card"><div class="tag">Dis à voix haute ↓</div><div class="fr">Bonjour. Je m'appelle Brian. Je suis céramiste et curateur d'expositions.</div></div>
+      <div class="speak-card"><div class="tag">Continue ↓</div><div class="fr">J'habite à Blacksburg, en Virginie. Dans cinq ans, j'espère vivre et travailler en France.</div></div>
+      <div class="speak-card"><div class="tag">Aujourd'hui ↓</div><div class="fr" id="opener">—</div></div>
+      <button class="check-btn" onclick="check(this)">✓ Fait</button>
+    </div>
+
+    <div class="block">
+      <div class="block-head">
+        <span class="block-num">02</span>
+        <span class="block-title">Le verbe du jour</span>
+        <span class="block-time">2 min</span>
+      </div>
+      <div class="card">
+        <div style="font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:0.35rem;" id="verbDisplay">—</div>
+        <div style="font-size:0.78rem;color:var(--warm-gray);line-height:1.6;" id="verbForms">—</div>
+      </div>
+      <div style="font-size:0.78rem;color:var(--warm-gray);margin-bottom:0.7rem;">Conjugue à voix haute : <em>je · tu · il · nous · vous · ils</em></div>
+      <div id="verbStarters"></div>
+      <button class="check-btn" onclick="check(this)">✓ Fait</button>
+    </div>
+
+    <div class="block">
+      <div class="block-head">
+        <span class="block-num">03</span>
+        <span class="block-title">Vocabulaire</span>
+        <span class="block-time">2 min</span>
+      </div>
+      <div class="vocab-grid" id="vocabGrid"></div>
+      <button class="check-btn" onclick="check(this)">✓ Fait</button>
+    </div>
+
+    <div class="block">
+      <div class="block-head">
+        <span class="block-num">04</span>
+        <span class="block-title">Expression vivante</span>
+        <span class="block-time">2 min</span>
+      </div>
+      <div class="accent-card">
+        <div class="big" id="exprFr">—</div>
+        <div class="sm" id="exprEn">—</div>
+        <div class="eg" id="exprEx">—</div>
+      </div>
+      <div id="exprStarters"></div>
+      <button class="check-btn" onclick="check(this)">✓ Fait</button>
+    </div>
+
+    <div class="block">
+      <div class="block-head">
+        <span class="block-num">05</span>
+        <span class="block-title">Deux phrases libres</span>
+        <span class="block-time">2 min</span>
+      </div>
+      <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--warm-gray);margin-bottom:0.5rem;">Prompt du jour</div>
+      <div class="card" style="margin-bottom:0.8rem;">
+        <div style="font-family:'Playfair Display',serif;font-style:italic;margin-bottom:0.25rem;" id="promptFr">—</div>
+        <div style="font-size:0.75rem;color:var(--warm-gray);" id="promptEn">—</div>
+      </div>
+      <div style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--warm-gray);margin-bottom:0.5rem;">Ta réponse</div>
+      <textarea class="journal-ta" id="journalInput" placeholder="Écris deux ou trois phrases ici…" spellcheck="false"></textarea>
+      <button class="check-btn" id="saveBtn" onclick="saveJournal()">💾 Sauvegarder</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ STREAK VIEW -->
+<div class="view" id="view-streak">
+  <div class="streak-hero">
+    <div class="streak-num" id="streakNum">0</div>
+    <div class="streak-label">jours consécutifs</div>
+    <div class="streak-sub" id="streakMsg">—</div>
+  </div>
+  <div class="page-pad" style="padding-top:0;">
+    <div class="label-sm" style="margin-bottom:0.7rem;">Ce mois-ci</div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="label-sm" style="margin-bottom:0.7rem; margin-top:1.5rem;">Meilleure série</div>
+    <div class="card"><span style="font-family:'Playfair Display',serif;font-size:1.3rem;" id="bestStreak">0</span> <span style="font-size:0.8rem;color:var(--warm-gray);">jours</span></div>
+    <div class="label-sm" style="margin-bottom:0.7rem; margin-top:1.5rem;">Total de sessions</div>
+    <div class="card"><span style="font-family:'Playfair Display',serif;font-size:1.3rem;" id="totalSessions">0</span> <span style="font-size:0.8rem;color:var(--warm-gray);">séances complétées</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ JOURNAL VIEW -->
+<div class="view" id="view-journal">
+  <div class="page-header">
+    <h1 class="display">Journal <em>français.</em></h1>
+    <p class="sub" id="journalCount">—</p>
+  </div>
+  <div class="page-pad" style="padding-top:0;" id="journalList">
+    <p style="color:var(--warm-gray);font-style:italic;font-size:0.9rem;">Aucune entrée pour le moment. Commence ton premier échauffement !</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ SETTINGS VIEW -->
+<div class="view" id="view-settings">
+  <div class="page-header">
+    <h1 class="display">Réglages.</h1>
+  </div>
+  <div class="page-pad" style="padding-top:0;">
+
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Rappel quotidien</div>
+        <div class="setting-sub">Notification chaque matin</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="notifToggle" onchange="toggleNotif()">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <div class="setting-row" id="timeRow" style="display:none;">
+      <div>
+        <div class="setting-label">Heure du rappel</div>
+        <div class="setting-sub">Format 24h</div>
+      </div>
+      <input type="time" class="time-input" id="reminderTime" value="07:30">
+    </div>
+
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Niveau</div>
+        <div class="setting-sub">En route vers B2</div>
+      </div>
+      <span style="font-size:0.78rem;color:var(--terra);">B1 → B2</span>
+    </div>
+
+    <div class="setting-row">
+      <div>
+        <div class="setting-label">Objectif</div>
+        <div class="setting-sub" style="font-style:italic;">Vivre et travailler en France</div>
+      </div>
+      <span style="font-size:0.75rem;color:var(--sage);">2029 🇫🇷</span>
+    </div>
+
+    <button class="big-btn" onclick="saveSettings()">Sauvegarder les réglages</button>
+    <button class="big-btn secondary" onclick="installApp()" id="installBtn" style="display:none;">Installer l'application</button>
+    <button class="big-btn secondary" onclick="exportJournal()">Exporter le journal (.txt)</button>
+
+    <div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--border);">
+      <div class="label-sm" style="margin-bottom:0.8rem;">À propos</div>
+      <p style="font-size:0.8rem;color:var(--warm-gray);line-height:1.7;">Bonjour est une application PWA hors-ligne. Tes données restent sur ton appareil — rien n'est envoyé sur un serveur.</p>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" id="nav-warmup" onclick="goTo('warmup')">
+    <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    Pratique
+  </button>
+  <button class="nav-btn" id="nav-streak" onclick="goTo('streak')">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Série
+  </button>
+  <button class="nav-btn" id="nav-journal" onclick="goTo('journal')">
+    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+    Journal
+  </button>
+  <button class="nav-btn" id="nav-settings" onclick="goTo('settings')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    Réglages
+  </button>
+</nav>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────────────────────
+const DATA = {
+  openers: [
+    "Ce matin, je travaille sur mon site web.",
+    "Aujourd'hui, je documente mes pièces en céramique.",
+    "En ce moment, j'attends l'installation électrique pour mon four.",
+    "Cette semaine, je prépare une nouvelle série de pièces.",
+    "Je commence ma journée avec un café et du français.",
+    "Aujourd'hui, j'ai pris des photos de mes céramiques.",
+    "Ce matin, je pense à mon avenir en France.",
+    "Aujourd'hui, je travaille sur la glaçure d'une nouvelle pièce.",
+    "Ce matin, j'ai envie de créer quelque chose de nouveau.",
+    "Cette semaine, je travaille sur la documentation de mon travail.",
+  ],
+  verbs: [
+    { v:"créer", en:"to create", forms:"je crée · tu crées · il crée · nous créons · vous créez · ils créent", starters:["Je crée des pièces en céramique __________.", "En France, j'aimerais créer __________.", "Pour mon site, je crée __________."] },
+    { v:"exposer", en:"to exhibit", forms:"j'expose · tu exposes · il expose · nous exposons · vous exposez · ils exposent", starters:["J'expose mon travail __________.", "Le centre expose des artistes qui __________.", "J'espère exposer en France __________."] },
+    { v:"vivre", en:"to live", forms:"je vis · tu vis · il vit · nous vivons · vous vivez · ils vivent", starters:["Dans cinq ans, je vis __________.", "J'aimerais vivre dans une ville où __________.", "Vivre en France, pour moi, ça veut dire __________."] },
+    { v:"attendre", en:"to wait", forms:"j'attends · tu attends · il attend · nous attendons · vous attendez · ils attendent", starters:["J'attends que l'électricité __________.", "En ce moment, j'attends __________.", "Ça fait longtemps qu'on attend __________."] },
+    { v:"s'installer", en:"to settle / set up", forms:"je m'installe · tu t'installes · il s'installe · nous nous installons · vous vous installez · ils s'installent", starters:["Je veux m'installer en France parce que __________.", "S'installer à l'étranger, il faut __________.", "Un jour, je m'installe dans un atelier __________."] },
+    { v:"photographier", en:"to photograph", forms:"je photographie · tu photographies · il photographie · nous photographions · vous photographiez · ils photographient", starters:["Je photographie mes pièces __________.", "C'est difficile de photographier __________.", "Pour photographier les glaçures, il faut __________."] },
+    { v:"cuire", en:"to fire (ceramics)", forms:"je cuis · tu cuis · il cuit · nous cuisons · vous cuisez · ils cuisent", starters:["Je cuis mes pièces à __________.", "Avant de cuire, il faut __________.", "Quand l'électricité sera installée, je pourrai cuire __________."] },
+    { v:"travailler", en:"to work", forms:"je travaille · tu travailles · il travaille · nous travaillons · vous travaillez · ils travaillent", starters:["Je travaille sur __________.", "En France, je voudrais travailler comme __________.", "Travailler dans les arts, c'est __________."] },
+  ],
+  vocab: [
+    [{ fr:"un atelier", en:"a studio / workshop" },{ fr:"la glaçure", en:"the glaze" },{ fr:"une résidence artistique", en:"an artist residency" },{ fr:"le marché de l'art", en:"the art market" },{ fr:"une pièce unique", en:"a one-of-a-kind piece" },{ fr:"le dossier artistique", en:"the artist portfolio" }],
+    [{ fr:"une galerie indépendante", en:"an independent gallery" },{ fr:"mettre en valeur", en:"to highlight / showcase" },{ fr:"un four électrique", en:"an electric kiln" },{ fr:"la cuisson", en:"the firing" },{ fr:"un commissaire d'exposition", en:"an exhibition curator" },{ fr:"s'expatrier", en:"to move abroad" }],
+    [{ fr:"une céramique émaillée", en:"a glazed ceramic piece" },{ fr:"le vernissage", en:"the opening night" },{ fr:"un visa de travail", en:"a work visa" },{ fr:"le patrimoine culturel", en:"cultural heritage" },{ fr:"une œuvre en série", en:"a series of works" },{ fr:"façonner à la main", en:"to shape by hand" }],
+    [{ fr:"les arts appliqués", en:"applied / craft arts" },{ fr:"la documentation d'œuvre", en:"artwork documentation" },{ fr:"un collectif d'artistes", en:"an artists' collective" },{ fr:"l'installation électrique", en:"the electrical installation" },{ fr:"la lumière naturelle", en:"natural light" },{ fr:"une surface brillante", en:"a shiny surface" }],
+    [{ fr:"le tournage", en:"throwing (on the wheel)" },{ fr:"l'argile (f.)", en:"clay" },{ fr:"un four à gaz", en:"a gas kiln" },{ fr:"le biscuit", en:"bisqueware" },{ fr:"l'émail (m.)", en:"glaze / enamel" },{ fr:"la terre cuite", en:"terracotta" }],
+  ],
+  expressions: [
+    { fr:"Ça m'interpelle.", en:"It speaks to me / catches my attention.", ex:"Cette glaçure m'interpelle — je ne sais pas encore pourquoi.", starters:["Ce travail m'interpelle parce que __________.", "La texture de cette pièce m'interpelle — elle __________.", "Ça m'interpelle, cette idée de __________."] },
+    { fr:"En cours de réalisation.", en:"Work in progress.", ex:"Mon site est encore en cours de réalisation.", starters:["Cette série est en cours de réalisation — je __________.", "Mon projet est en cours de réalisation depuis __________.", "En cours de réalisation : un four qui attend __________."] },
+    { fr:"Ça vaut le détour.", en:"It's worth the trip / the visit.", ex:"Si tu vas à Lyon, le musée des Confluences vaut le détour.", starters:["En France, __________ vaut vraiment le détour.", "Pour un céramiste, __________ vaut le détour.", "Ce quartier vaut le détour parce que __________."] },
+    { fr:"Je m'y mets.", en:"I'm getting to it / starting on it.", ex:"Le site n'est pas fini mais je m'y mets chaque matin.", starters:["Je m'y mets maintenant — j'ai besoin de __________.", "Pour mon français, je m'y mets __________.", "Je m'y mets dès que __________."] },
+    { fr:"À vrai dire…", en:"To tell the truth… / Honestly…", ex:"À vrai dire, j'attends ce four depuis des semaines.", starters:["À vrai dire, vivre en France me __________.", "À vrai dire, mon travail préféré c'est __________.", "À vrai dire, je ne sais pas encore si __________."] },
+    { fr:"Ça fait partie du processus.", en:"It's part of the process.", ex:"Attendre la cuisson, ça fait partie du processus.", starters:["Apprendre le français fait partie du processus de __________.", "Les erreurs, ça fait partie du processus — par exemple __________.", "Pour moi, ça fait partie du processus de __________."] },
+    { fr:"C'est en train de changer.", en:"It's in the process of changing.", ex:"Le marché de la céramique, c'est en train de changer.", starters:["Mon rapport au travail, c'est en train de changer parce que __________.", "La scène artistique en France, c'est en train de __________.", "C'est en train de changer — j'espère que __________."] },
+    { fr:"Ça me manque.", en:"I miss it.", ex:"La céramique me manque quand je ne peux pas cuire.", starters:["Ce qui me manque en ce moment, c'est __________.", "Si je vivais en France, __________ me manquerait.", "Ça me manque de ne pas pouvoir __________."] },
+  ],
+  prompts: [
+    { fr:"Décris une pièce sur laquelle tu travailles en ce moment.", en:"Describe a piece you're currently working on." },
+    { fr:"Qu'est-ce que tu imagines dans ton atelier idéal en France ?", en:"What do you imagine in your ideal studio in France?" },
+    { fr:"Pourquoi est-ce que tu veux vivre en France dans cinq ans ?", en:"Why do you want to live in France in five years?" },
+    { fr:"Parle d'une exposition qui t'a marqué récemment.", en:"Talk about an exhibition that stayed with you recently." },
+    { fr:"Comment est-ce que tu documentes ton travail artistique ?", en:"How do you document your artistic work?" },
+    { fr:"Qu'est-ce qui te manquerait des États-Unis si tu partais en France ?", en:"What would you miss about the US if you moved to France?" },
+    { fr:"Décris ta routine créative idéale en français.", en:"Describe your ideal creative routine in French." },
+    { fr:"Qu'est-ce que tu aimerais exposer dans une galerie française ?", en:"What would you like to exhibit in a French gallery?" },
+    { fr:"Parle des difficultés de photographier des céramiques brillantes.", en:"Talk about the challenges of photographing shiny ceramics." },
+    { fr:"Qu'est-ce que la céramique représente pour toi ?", en:"What does ceramics mean to you?" },
+  ],
+};
+
+// ─── STORAGE ─────────────────────────────────────────────────────────────────
+const S = {
+  get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+  set: (k,v) => localStorage.setItem(k, JSON.stringify(v)),
+};
+
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function daysSeed() {
+  const d = new Date();
+  return d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate();
+}
+
+function pick(arr, offset=0) { return arr[(daysSeed() + offset) % arr.length]; }
+
+// ─── STREAK ──────────────────────────────────────────────────────────────────
+function getCompletedDays() { return S.get('completedDays') || []; }
+
+function markTodayDone() {
+  const days = getCompletedDays();
+  const today = todayKey();
+  if (!days.includes(today)) { days.push(today); S.set('completedDays', days); }
+}
+
+function calcStreak() {
+  const days = getCompletedDays().sort();
+  if (!days.length) return 0;
+  let streak = 0;
+  const today = new Date(); today.setHours(0,0,0,0);
+  let check = new Date(today);
+  // allow today or yesterday to keep streak alive
+  const last = new Date(days[days.length-1]);
+  last.setHours(0,0,0,0);
+  const diff = (today - last) / 86400000;
+  if (diff > 1) return 0;
+  for (let i = days.length-1; i >= 0; i--) {
+    const d = new Date(days[i]); d.setHours(0,0,0,0);
+    const gap = (check - d) / 86400000;
+    if (gap <= 1) { streak++; check = d; } else break;
+  }
+  return streak;
+}
+
+function calcBest() {
+  const days = getCompletedDays().sort();
+  if (!days.length) return 0;
+  let best=1, cur=1;
+  for (let i=1;i<days.length;i++) {
+    const a=new Date(days[i-1]), b=new Date(days[i]);
+    const gap=(b-a)/86400000;
+    if(gap===1){ cur++; best=Math.max(best,cur); } else cur=1;
+  }
+  return best;
+}
+
+// ─── INIT WARMUP ─────────────────────────────────────────────────────────────
+function initWarmup() {
+  document.getElementById('dateLine').textContent =
+    new Date().toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+  const streak = calcStreak();
+  document.getElementById('streakInline').textContent =
+    streak > 0 ? `🔥 ${streak} jour${streak>1?'s':''} de suite` : 'Commence ta série aujourd\'hui';
+
+  document.getElementById('opener').textContent = pick(DATA.openers);
+
+  const verb = pick(DATA.verbs, 1);
+  document.getElementById('verbDisplay').textContent = `${verb.v} — ${verb.en}`;
+  document.getElementById('verbForms').textContent = verb.forms;
+  const vs = document.getElementById('verbStarters');
+  vs.innerHTML = '';
+  verb.starters.forEach(s => {
+    const d = document.createElement('div');
+    d.className = 'starter';
+    d.innerHTML = s.replace('__________','<span class="blank">__________</span>');
+    vs.appendChild(d);
+  });
+
+  const vocabSet = pick(DATA.vocab, 2);
+  const vg = document.getElementById('vocabGrid');
+  vg.innerHTML = '';
+  vocabSet.forEach(v => {
+    const el = document.createElement('div');
+    el.className = 'vocab-item';
+    el.innerHTML = `<div class="word">${v.fr}</div><div class="trans">${v.en}</div><div class="hint">tap</div>`;
+    el.onclick = () => el.classList.toggle('open');
+    vg.appendChild(el);
+  });
+
+  const expr = pick(DATA.expressions, 3);
+  document.getElementById('exprFr').textContent = expr.fr;
+  document.getElementById('exprEn').textContent = expr.en;
+  document.getElementById('exprEx').textContent = `« ${expr.ex} »`;
+  const es = document.getElementById('exprStarters');
+  es.innerHTML = '';
+  expr.starters.forEach(s => {
+    const d = document.createElement('div');
+    d.className = 'starter';
+    d.innerHTML = s.replace('__________','<span class="blank">__________</span>');
+    es.appendChild(d);
+  });
+
+  const prompt = pick(DATA.prompts, 4);
+  document.getElementById('promptFr').textContent = prompt.fr;
+  document.getElementById('promptEn').textContent = prompt.en;
+
+  // Pre-fill today's journal if saved
+  const entries = S.get('journalEntries') || {};
+  const saved = entries[todayKey()];
+  if (saved) {
+    document.getElementById('journalInput').value = saved.text;
+    document.getElementById('saveBtn').textContent = '✓ Sauvegardé';
+    document.getElementById('saveBtn').classList.add('done');
+  }
+}
+
+// ─── SAVE JOURNAL ────────────────────────────────────────────────────────────
+function saveJournal() {
+  const text = document.getElementById('journalInput').value.trim();
+  if (!text) return;
+  const entries = S.get('journalEntries') || {};
+  entries[todayKey()] = {
+    text,
+    prompt: document.getElementById('promptFr').textContent,
+    date: new Date().toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'}),
+  };
+  S.set('journalEntries', entries);
+  markTodayDone();
+  const btn = document.getElementById('saveBtn');
+  btn.textContent = '✓ Sauvegardé';
+  btn.classList.add('done');
+  initStreak();
+}
+
+// ─── CHECK BUTTONS ───────────────────────────────────────────────────────────
+function check(btn) {
+  btn.classList.toggle('done');
+  btn.textContent = btn.classList.contains('done') ? '✓ Fait !' : '✓ Fait';
+}
+
+// ─── TIMER ───────────────────────────────────────────────────────────────────
+let timerRunning=false, timerRemaining=600, timerInterval=null;
+function toggleTimer() {
+  if (!timerRunning) {
+    timerRunning=true;
+    document.getElementById('timerBtn').textContent='Pause';
+    timerInterval=setInterval(()=>{
+      timerRemaining--;
+      if(timerRemaining<=0){
+        timerRemaining=0; clearInterval(timerInterval); timerRunning=false;
+        document.getElementById('timerBtn').textContent='Terminé ✓';
+        document.getElementById('timerNum').style.color='var(--sage)';
+        markTodayDone(); initStreak();
+      }
+      updateTimer();
+    },1000);
+  } else {
+    timerRunning=false; clearInterval(timerInterval);
+    document.getElementById('timerBtn').textContent='Reprendre';
+  }
+}
+function updateTimer() {
+  const m=Math.floor(timerRemaining/60), s=timerRemaining%60;
+  document.getElementById('timerNum').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  document.getElementById('timerFill').style.width=`${((600-timerRemaining)/600)*100}%`;
+}
+
+// ─── STREAK VIEW ─────────────────────────────────────────────────────────────
+function initStreak() {
+  const streak = calcStreak();
+  const best = calcBest();
+  const days = getCompletedDays();
+  document.getElementById('streakNum').textContent = streak;
+  document.getElementById('bestStreak').textContent = best;
+  document.getElementById('totalSessions').textContent = days.length;
+  document.getElementById('streakInline').textContent =
+    streak > 0 ? `🔥 ${streak} jour${streak>1?'s':''} de suite` : 'Commence ta série aujourd\'hui';
+
+  const msgs = ['Continue comme ça !','Tu progresses chaque jour.','Vers la France, un jour à la fois.','Bravo — ne t\'arrête pas !','Chaque matin compte.'];
+  document.getElementById('streakMsg').textContent = streak > 0 ? msgs[streak % msgs.length] : 'Commence aujourd\'hui.';
+
+  buildCalendar();
+}
+
+function buildCalendar() {
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+  const days = ['L','M','M','J','V','S','D'];
+  days.forEach(d => { const el=document.createElement('div'); el.className='cal-day-label'; el.textContent=d; grid.appendChild(el); });
+
+  const completed = new Set(getCompletedDays());
+  const now = new Date();
+  const year = now.getFullYear(), month = now.getMonth();
+  const firstDay = new Date(year, month, 1).getDay();
+  const offset = (firstDay+6)%7; // Mon=0
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const todayStr = todayKey();
+
+  for (let i=0;i<offset;i++) { const el=document.createElement('div'); el.className='cal-day empty'; grid.appendChild(el); }
+  for (let d=1;d<=daysInMonth;d++) {
+    const key=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const el=document.createElement('div');
+    el.className='cal-day'+(completed.has(key)?' done':'')+(key===todayStr?' today':'');
+    el.textContent=d;
+    grid.appendChild(el);
+  }
+}
+
+// ─── JOURNAL VIEW ────────────────────────────────────────────────────────────
+function initJournal() {
+  const entries = S.get('journalEntries') || {};
+  const keys = Object.keys(entries).sort().reverse();
+  document.getElementById('journalCount').textContent =
+    keys.length ? `${keys.length} entrée${keys.length>1?'s':''} enregistrée${keys.length>1?'s':''}` : 'Aucune entrée';
+  const list = document.getElementById('journalList');
+  if (!keys.length) {
+    list.innerHTML='<p style="color:var(--warm-gray);font-style:italic;font-size:0.9rem;">Aucune entrée pour le moment. Commence ton premier échauffement !</p>';
+    return;
+  }
+  list.innerHTML='';
+  keys.forEach(k => {
+    const e=entries[k];
+    const el=document.createElement('div');
+    el.className='journal-entry';
+    el.innerHTML=`
+      <div class="je-head" onclick="this.nextElementSibling.classList.toggle('open')">
+        <div>
+          <div class="je-date">${e.date||k}</div>
+          <div class="je-preview">${e.text}</div>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--warm-gray)" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="je-body">
+        <div class="prompt-sm">Prompt : ${e.prompt||'—'}</div>
+        <p>${e.text}</p>
+      </div>`;
+    list.appendChild(el);
+  });
+}
+
+// ─── SETTINGS ────────────────────────────────────────────────────────────────
+function initSettings() {
+  const s=S.get('settings')||{};
+  if(s.notif){ document.getElementById('notifToggle').checked=true; document.getElementById('timeRow').style.display='flex'; }
+  if(s.time) document.getElementById('reminderTime').value=s.time;
+}
+
+function toggleNotif() {
+  const on=document.getElementById('notifToggle').checked;
+  document.getElementById('timeRow').style.display=on?'flex':'none';
+  if(on) requestNotifPermission();
+}
+
+async function requestNotifPermission() {
+  if(!('Notification' in window)){ alert('Les notifications ne sont pas supportées sur ce navigateur.'); document.getElementById('notifToggle').checked=false; return; }
+  const perm=await Notification.requestPermission();
+  if(perm!=='granted'){ alert('Permission refusée. Active les notifications dans les réglages de ton navigateur.'); document.getElementById('notifToggle').checked=false; }
+}
+
+function saveSettings() {
+  const notif=document.getElementById('notifToggle').checked;
+  const time=document.getElementById('reminderTime').value;
+  S.set('settings',{notif,time});
+  if(notif && 'serviceWorker' in navigator) {
+    navigator.serviceWorker.ready.then(sw => {
+      const [h,m]=time.split(':').map(Number);
+      sw.active.postMessage({type:'SCHEDULE_NOTIFICATION',hour:h,minute:m});
+    });
+  }
+  const btn=event.target;
+  btn.textContent='✓ Sauvegardé';
+  setTimeout(()=>btn.textContent='Sauvegarder les réglages',2000);
+}
+
+function exportJournal() {
+  const entries=S.get('journalEntries')||{};
+  const keys=Object.keys(entries).sort();
+  if(!keys.length){ alert('Aucune entrée à exporter.'); return; }
+  let txt='JOURNAL FRANÇAIS — BRIAN\n'+'='.repeat(40)+'\n\n';
+  keys.forEach(k=>{
+    const e=entries[k];
+    txt+=`${e.date||k}\n`;
+    txt+=`Prompt : ${e.prompt||'—'}\n`;
+    txt+=`${e.text}\n\n${'─'.repeat(40)}\n\n`;
+  });
+  const a=document.createElement('a');
+  a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(txt);
+  a.download='journal-francais.txt';
+  a.click();
+}
+
+// ─── NAV ─────────────────────────────────────────────────────────────────────
+function goTo(id) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+  document.getElementById('nav-'+id).classList.add('active');
+  if(id==='streak') initStreak();
+  if(id==='journal') initJournal();
+  if(id==='settings') initSettings();
+  window.scrollTo(0,0);
+}
+
+// ─── PWA INSTALL ─────────────────────────────────────────────────────────────
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault(); deferredPrompt=e;
+  document.getElementById('installBtn').style.display='block';
+});
+
+function installApp() {
+  if(!deferredPrompt){ alert('Pour installer : appuie sur "Partager" puis "Sur l\'écran d\'accueil" dans Safari, ou utilise le menu ⋮ dans Chrome.'); return; }
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(()=>{ deferredPrompt=null; document.getElementById('installBtn').style.display='none'; });
+}
+
+// ─── SERVICE WORKER ───────────────────────────────────────────────────────────
+if('serviceWorker' in navigator) {
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js').then(reg=>{
+      console.log('SW registered',reg.scope);
+      const s=S.get('settings');
+      if(s&&s.notif&&s.time&&reg.active){
+        const [h,m]=s.time.split(':').map(Number);
+        reg.active.postMessage({type:'SCHEDULE_NOTIFICATION',hour:h,minute:m});
+      }
+    });
+  });
+}
+
+// ─── BOOT ────────────────────────────────────────────────────────────────────
+initWarmup();
+</script>
+</body>
+</html>
